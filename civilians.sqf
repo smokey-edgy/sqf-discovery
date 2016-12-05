@@ -16,7 +16,7 @@ SE_fnc_nearestRoad = {
   _nearestRoad
 };
 
-SN_fnc_moveUnit = {
+SN_fnc_animateUnit = {
   params ["_unit", "_anim"];
 
   _unit disableAI "ANIM";
@@ -48,6 +48,7 @@ SE_fnc_villagerWalkingDownTheRoad = {
 
   _villagerGroup = [position _nearestRoad, Civilian, ["Afghan_Civilian1"]] call BIS_fnc_spawnGroup;
   _leader = leader _villagerGroup;
+  _leader switchMove "";
 
   _aPointDownTheRoad = ([_nearestRoad] call SE_fnc_aPointDownTheRoad);
 
@@ -60,11 +61,30 @@ SE_fnc_villagerWalkingDownTheRoad = {
   _wp setWaypointType "CYCLE";
 };
 
-_xPos = position player select 0;
-_yPos = position player select 1;
+SE_fnc_villagerWaving = {
+  params ["_xPos", "_yPos"];
+  private ["_villagerGroup", "_leader"];
 
-([_xPos, _yPos] call SE_fnc_villagerWalkingDownTheRoad);
+  _nearestRoad = ([_xPos, _yPos] call SE_fnc_nearestRoad);
 
+  _villagerGroup = [position _nearestRoad, Civilian, ["Afghan_Civilian1"]] call BIS_fnc_spawnGroup;
+  _leader = leader _villagerGroup;
+
+  _leader switchMove "";
+
+  while{alive _leader} do {
+	   _leader switchMove "HubWave_move1";
+     sleep 5;
+  };
+};
+
+[] spawn {
+
+  _xPos = position player select 0;
+  _yPos = position player select 1;
+
+  ([_xPos, _yPos] call SE_fnc_villagerWaving);
+};
 
 SE_fnc_strayDogWonderingAround = {};
 SE_fnc_villagerWalkingDog = {};
@@ -75,4 +95,3 @@ SE_fnc_villagerWatchingFromField = {};
 SE_fnc_villagerWatchingInTheBush = {};
 SE_fnc_villagerLoitering = {};
 SE_fnc_villagerNervous = {};
-SE_fnc_villagerWaving = {};
