@@ -9,6 +9,18 @@ SE_fnc_civilianWalkingToNearestRoad = {
   _wp setWaypointType "MOVE";
 };
 
+SN_fnc_moveUnit = {
+  _unit = _this select 0;
+  _anim = _this select 1;
+
+  _unit disableAI "ANIM";
+
+  while{alive _unit} do{
+	   _unit playMove _anim;
+	    waitUntil{animationState _unit != _anim};
+  };
+};
+
 SE_fnc_civilianWalkingDog = {
   _civs = [position player, Civilian, ["Afghan_Civilian1"]] call BIS_fnc_spawnGroup;
   _leader = leader _civs;
@@ -30,18 +42,14 @@ SE_fnc_civilianWalkingDog = {
 
   _nearestRoad = position _leader nearRoads 100 select 0;
 
-  _wp1 = _civs addWaypoint [position _nearestRoad, 0];
-  _wp1 setWaypointSpeed "LIMITED";
-  _wp1 setWaypointType "MOVE";
-
   _nearestHouse = nearestBuilding position _leader;
 
   _wp2 = _civs addWaypoint [position _nearestHouse, 0];
   _wp2 setWaypointSpeed "LIMITED";
   _wp2 setWaypointType "MOVE";
 
-  _wp3 = _civs addWaypoint [position _nearestRoad, 0];
-  _wp3 setWaypointType "CYCLE";
+([_leader, "AmovPercMwlkSnonWnonDfr"] call SN_fnc_moveUnit);
+
 };
 
 (call SE_fnc_civilianWalkingDog);
