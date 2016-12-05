@@ -2,7 +2,7 @@ SE_fnc_nearestRoad = {
   params ["_xPos", "_yPos"];
   private ["_distances", "_nearestRoad"];
 
-  _distances = [100, 500, 1000, 2000, 5000, 10000, 50000];
+  _distances = [5, 10, 100, 500, 1000, 2000, 5000, 10000, 50000];
 
   {
     scopeName "findingNearestRoad";
