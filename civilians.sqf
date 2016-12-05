@@ -10,24 +10,54 @@ SE_fnc_nearestRoad = {
     _nearestRoad = [_xPos, _yPos] nearRoads _x select 0;
     if (!isNil "_nearestRoad") then {
       breakOut "findingNearestRoad";
-    }
+    };
   } forEach _distances;
 
-  position _nearestRoad
+  _nearestRoad
+};
+
+SN_fnc_moveUnit = {
+  params ["_unit", "_anim"];
+
+  _unit disableAI "ANIM";
+
+  while{alive _unit} do{
+	   _unit playMove _anim;
+	    waitUntil{animationState _unit != _anim};
+  };
+};
+
+SE_fnc_aPointDownTheRoad = {
+  params ["_roadToStartOn"];
+  private ["_somewhereDownTheRoad", "_i"];
+
+  _somewhereDownTheRoad = roadsConnectedTo _roadToStartOn select 0;
+
+  for "_i" from 0 to 25 do {
+    _somewhereDownTheRoad = roadsConnectedTo _somewhereDownTheRoad select 0;
+  };
+
+  _somewhereDownTheRoad
 };
 
 SE_fnc_villagerWalkingDownTheRoad = {
   params ["_xPos", "_yPos"];
-  private ["_villagerGroup", "_leader", "_nearestRoad", "_wp"];
-
-  _villagerGroup = [[_xPos, _yPos], Civilian, ["Afghan_Civilian1"]] call BIS_fnc_spawnGroup;
-  _leader = leader _villagerGroup;
+  private ["_villagerGroup", "_leader", "_nearestRoad", "_aPointDownTheRoad", "_wp"];
 
   _nearestRoad = ([_xPos, _yPos] call SE_fnc_nearestRoad);
 
-  _wp = _villagerGroup addWaypoint [_nearestRoad, 0];
+  _villagerGroup = [position _nearestRoad, Civilian, ["Afghan_Civilian1"]] call BIS_fnc_spawnGroup;
+  _leader = leader _villagerGroup;
+
+  _aPointDownTheRoad = ([_nearestRoad] call SE_fnc_aPointDownTheRoad);
+
+  _wp = _villagerGroup addWaypoint [position _aPointDownTheRoad, 0];
   _wp setWaypointSpeed "LIMITED";
   _wp setWaypointType "MOVE";
+
+  _wp = _villagerGroup addWaypoint [position _nearestRoad, 0];
+  _wp setWaypointSpeed "LIMITED";
+  _wp setWaypointType "CYCLE";
 };
 
 _xPos = position player select 0;
