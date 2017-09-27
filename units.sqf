@@ -6,6 +6,7 @@ SE_fnc_civilianWalkingToNearestRoad = {
 
   _wp = _civs addWaypoint [position _nearestRoad, 0];
   _wp setWaypointSpeed "LIMITED";
+  _wp setWaypointBehaviour "CARELESS";
   _wp setWaypointType "MOVE";
 };
 
@@ -52,4 +53,4 @@ SE_fnc_civilianWalkingDog = {
 
 };
 
-(call SE_fnc_civilianWalkingDog);
+(call SE_fnc_civilianWalkingToNearestRoad);
