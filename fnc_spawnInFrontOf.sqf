@@ -40,8 +40,6 @@ fnc_spawnInFrontOf = {
     _spawnedObject
 };
 
-
-
 [
     player,
     "Land_Pier_F"
@@ -57,8 +55,12 @@ _obj = createVehicle [
     "CAN_COLLIDE"
 ];
 
-_obj attachTo [_start, [
-           0,
-           0,
-           1
-       ]];
+_playerHeight = ((getPosASL player) select 2) * 2;
+
+_obj attachTo [_start];
+
+_objPos = getPosATL _obj;
+_objDir = getDir _obj;
+detach _obj;
+_obj setDir _objDir;
+_obj setPosATL _objPos;
