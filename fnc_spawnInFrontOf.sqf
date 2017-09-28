@@ -14,7 +14,7 @@ fnc_maxWidthLengthHeightOf = {
 
 fnc_spawnInFrontOf = {
     params ["_object", "_thing"];
-    private ["_spawnedObject", "_maxs", "_maxWidth", "_maxHeight", "_pos", "_objectHeight"];
+    private ["_spawnedObject", "_maxs", "_maxWidth", "_pos", "_objectHeight"];
 
     _spawnedObject = createVehicle [
         _thing,
@@ -40,23 +40,35 @@ fnc_spawnInFrontOf = {
     _spawnedObject
 };
 
+fnc_attachObjectTo = {
+  params ["_objectClass", "_objectToAttachTo", "_inFrontOf"];
+  private ["_newObject", "_objPos", "_objDir", "_objectToAttachToHeight"];
+
+  _newObject = [
+      _inFrontOf,
+      _objectClass
+  ] call fnc_spawnInFrontOf;
+
+  _newObject attachTo [_objectToAttachTo];
+
+  _objPos = getPos _newObject;
+  _objDir = getDir _newObject;
+
+  detach _newObject;
+  _newObject setDir _objDir;
+  _objectToAttachToHeight = ((getPos _objectToAttachTo) select 2);
+  _newObject setPos [(_objPos select 0), (_objPos select 1), _objectToAttachToHeight];
+
+  _newObject
+};
+
 [
     player,
     "Land_Pier_F"
 ] call fnc_spawnInFrontOf;
 
-_start = nearestObject [player, "Land_Pier_F"];
-
-_obj = [
-    player,
-    "Land_Pier_F"
-] call fnc_spawnInFrontOf;
-
-_obj attachTo [_start];
-
-_objPos = getPos _obj;
-_objDir = getDir _obj;
-detach _obj;
-_obj setDir _objDir;
-_startHeight = ((getPos _start) select 2);
-_obj setPos [(_objPos select 0), (_objPos select 1), _startHeight];
+[
+    "Land_Pier_F",
+    nearestObject [player, "Land_Pier_F"],
+    player
+] call fnc_attachObjectTo;
