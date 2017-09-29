@@ -14,7 +14,7 @@ fnc_maxWidthLengthHeightOf = {
 
 fnc_spawnInFrontOf = {
     params ["_object", "_thing"];
-    private ["_spawnedObject", "_maxs", "_maxWidth", "_pos", "_objectHeight"];
+    private ["_spawnedObject", "_maxs", "_maxWidth", "_pos", "_objectDistanceFromTerrain"];
 
     _spawnedObject = createVehicle [
         _thing,
@@ -34,8 +34,8 @@ fnc_spawnInFrontOf = {
 
     _pos = _object modelToWorld [0,_maxWidth,0];
 
-    _objectHeight = ((getPosASL _object) select 2) * 2;
-    _spawnedObject setPos ([(_pos select 0), (_pos select 1), (_pos select 2) - _objectHeight]);
+    _objectDistanceFromTerrain = ((getPosATL _object) select 2);
+    _spawnedObject setPosATL ([(_pos select 0), (_pos select 1), _objectDistanceFromTerrain]);
 
     _spawnedObject
 };
@@ -77,13 +77,12 @@ player addAction ["Construct/Extend Bridge", {
          player,
          "Land_Pier_F"
      ] call fnc_spawnInFrontOf;
-   } else {     
+   } else {
      [
          "Land_Pier_F",
          _nearestBridgeSegment,
          player
      ] call fnc_attachObjectTo;
-     hint format ["spawnInFrontOf"];
    };
   };
 }];
