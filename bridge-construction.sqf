@@ -62,36 +62,28 @@ fnc_attachObjectTo = {
   _newObject
 };
 
-fnc_animateUnit = {
-  params ["_unit", "_anim"];
+player addAction ["Construct/Extend Bridge", {
+  player playMove "AinvPknlMstpSnonWrflDr_medic5";
+  [] spawn
+  {
+   sleep 5;
+   player playAction "PlayerStand";
+   sleep 5;
 
-  _unit disableAI "ANIM";
+   _nearestBridgeSegment = ((nearestObjects [player, ["Land_Pier_F"], 25]) select 0);
 
-  while{alive _unit} do{
-	   _unit playMove _anim;
-	    waitUntil{animationState _unit != _anim};
+   if(isNil "_nearestBridgeSegment") then {
+     [
+         player,
+         "Land_Pier_F"
+     ] call fnc_spawnInFrontOf;
+   } else {     
+     [
+         "Land_Pier_F",
+         _nearestBridgeSegment,
+         player
+     ] call fnc_attachObjectTo;
+     hint format ["spawnInFrontOf"];
+   };
   };
-};
-
-[
-    player,
-    "Land_Pier_F"
-] call fnc_spawnInFrontOf;
-
-[
-    "Land_Pier_F",
-    nearestObject [player, "Land_Pier_F"],
-    player
-] call fnc_attachObjectTo;
-
-[
-    player,
-    "AnivPknlMstpSnonWnonDnon_medic0"
-] call fnc_animateUnit;
-
-player playMove "AinvPknlMstpSnonWrflDr_medic5"; 
-[] spawn
-{
- sleep 5;
- player playAction "PlayerStand";
-};
+}];
