@@ -2,7 +2,7 @@ fnc_maxWidthLengthHeightOf = {
     params ["_object"];
     private ["_bbr", "_p1", "_p2", "_maxWidth", "_maxLength", "_maxHeight"];
 
-    _bbr = boundingBoxReal _spawnedObject;
+    _bbr = boundingBoxReal _object;
     _p1 = _bbr select 0;
     _p2 = _bbr select 1;
     _maxWidth = abs ((_p2 select 0) - (_p1 select 0));
@@ -42,20 +42,24 @@ fnc_spawnInFrontOf = {
 
 fnc_attachObjectTo = {
   params ["_objectClass", "_objectToAttachTo", "_inFrontOf"];
-  private ["_newObject", "_objPos", "_objDir", "_objectToAttachToHeight"];
+  private ["_newObject", "_objPos", "_objDir", "_objectToAttachToHeight", "_objectToAttachToX", "_objectToAttachToY", "_maxs", "_maxWidth"];
 
   _newObject = [
       _inFrontOf,
       _objectClass
   ] call fnc_spawnInFrontOf;
 
-  _newObject attachTo [_objectToAttachTo];
+  _maxs = [_newObject] call fnc_maxWidthLengthHeightOf;
+  _maxWidth = (_maxs select 0);
+
+  _newObject attachTo [_objectToAttachTo, [-_maxWidth + 1, 0, 0]];
 
   _objPos = getPos _newObject;
   _objDir = getDir _newObject;
 
   detach _newObject;
   _newObject setDir _objDir;
+
   _objectToAttachToHeight = ((getPos _objectToAttachTo) select 2);
   _newObject setPos [(_objPos select 0), (_objPos select 1), _objectToAttachToHeight];
 
