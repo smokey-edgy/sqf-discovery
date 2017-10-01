@@ -32,7 +32,7 @@ fnc_spawnInFrontOf = {
     _spawnedObject setVectorUp [0,0,1];
     _spawnedObject setDir ((direction _object) + 90);
 
-    _pos = _object modelToWorld [0,_maxWidth,0];
+    _pos = _object modelToWorld [0, _maxWidth, 0];
 
     _objectDistanceFromTerrain = ((getPosATL _object) select 2);
     _spawnedObject setPosATL ([(_pos select 0), (_pos select 1), _objectDistanceFromTerrain]);
@@ -42,7 +42,7 @@ fnc_spawnInFrontOf = {
 
 fnc_attachObjectTo = {
   params ["_objectClass", "_objectToAttachTo", "_inFrontOf"];
-  private ["_newObject", "_objPos", "_objDir", "_objectToAttachToHeight", "_objectToAttachToX", "_objectToAttachToY", "_maxs", "_maxWidth"];
+  private ["_newObject", "_objPos", "_objDir", "_objectToAttachToZ", "_maxs", "_maxWidth"];
 
   _newObject = [
       _inFrontOf,
@@ -60,8 +60,8 @@ fnc_attachObjectTo = {
   detach _newObject;
   _newObject setDir _objDir;
 
-  _objectToAttachToHeight = ((getPos _objectToAttachTo) select 2);
-  _newObject setPos [(_objPos select 0), (_objPos select 1), _objectToAttachToHeight];
+  _objectToAttachToZ = ((getPos _objectToAttachTo) select 2);
+  _newObject setPos [(_objPos select 0), (_objPos select 1), _objectToAttachToZ];
 
   _newObject
 };
