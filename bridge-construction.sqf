@@ -90,3 +90,9 @@ player addAction ["Construct/Extend Bridge", {
    };
   };
 }];
+
+_pos = player getRelPos [4, 0];
+_ramp = createSimpleObject ["A3\Structures_F\Training\RampConcrete_F.p3d", _pos];
+_ramp  setVectorUp [0,0,1];
+_ramp setPosATL ([(_pos select 0), (_pos select 1), 0]);
+_ramp setDir (getDir player + 180);
