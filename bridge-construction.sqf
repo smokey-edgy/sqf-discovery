@@ -13,9 +13,12 @@ fnc_maxWidthLengthHeightOf = {
 };
 
 fnc_spawnInFrontOf = {
-    params ["_object", "_thing"];
+    params ["_object", "_thing", "_directionOffset"];
     private ["_spawnedObject", "_maxs", "_maxWidth", "_pos", "_objectDistanceFromTerrain"];
 
+    if(isNil "_directionOffset") then {
+      _directionOffset = 0;
+    };
     _spawnedObject = createVehicle [
         _thing,
         getPos _object,
@@ -30,7 +33,7 @@ fnc_spawnInFrontOf = {
     _maxLength = (_maxs select 1) / 2;
 
     _spawnedObject setVectorUp [0,0,1];
-    _spawnedObject setDir ((direction _object) + 90);
+    _spawnedObject setDir ((direction _object) + _directionOffset);
 
     _pos = _object modelToWorld [0, _maxWidth, 0];
 
@@ -66,6 +69,59 @@ fnc_attachObjectTo = {
   _newObject
 };
 
+fnc_spawnSimpleObjectInFrontOf ={
+  params ["_simpleObjectP3DPath", "_inFrontOf", "_directionOffset"];
+  private ["_inFrontOfPos", "_object"];
+
+  if(isNil "_directionOffset") then {
+    _directionOffset = 0;
+  };
+
+  _inFrontOfPos = _inFrontOf getRelPos [4, 0];
+  _object = createSimpleObject [_simpleObjectP3DPath, _inFrontOfPos];
+  _object setVectorUp [0,0,1];
+  _object setPosATL ([(_inFrontOfPos select 0), (_inFrontOfPos select 1), 0]);
+  _object setDir (getDir player + _directionOffset);
+
+  _object
+};
+
+fnc_constructInitialRampAndBridgeSegment = {
+  private ["_initialRamp", "_initialBridgeSegment"];
+
+  _initialRamp = [
+      "A3\Structures_F\Training\RampConcrete_F.p3d",
+      player,
+      180
+  ] call fnc_spawnSimpleObjectInFrontOf;
+
+  _initialBridgeSegment = [
+      player,
+      "Land_Pier_F"
+  ] call fnc_spawnInFrontOf;
+
+  _maxs = [_initialRamp] call fnc_maxWidthLengthHeightOf;
+  _maxWidth = (_maxs select 0);
+
+  _initialBridgeSegment attachTo [_initialRamp];
+
+  _objPos = getPos _initialBridgeSegment;
+  detach _initialBridgeSegment;
+
+  _initialBridgeSegment setDir (getDir player + 90);
+
+  _objectToAttachToZ = ((getPos _initialRamp) select 2) - 1.6;
+  _initialBridgeSegment setPos [(_objPos select 0) - (_maxWidth + 2), (_objPos select 1), _objectToAttachToZ];
+};
+
+fnc_constructBridgeExtension = {
+
+};
+
+fnc_constructFinalRamp = {
+
+};
+
 player addAction ["Construct/Extend Bridge", {
   player playMove "AinvPknlMstpSnonWrflDr_medic5";
   [] spawn
@@ -79,7 +135,8 @@ player addAction ["Construct/Extend Bridge", {
    if(isNil "_nearestBridgeSegment") then {
      [
          player,
-         "Land_Pier_F"
+         "Land_Pier_F",
+         90
      ] call fnc_spawnInFrontOf;
    } else {
      [
@@ -91,8 +148,4 @@ player addAction ["Construct/Extend Bridge", {
   };
 }];
 
-_pos = player getRelPos [4, 0];
-_ramp = createSimpleObject ["A3\Structures_F\Training\RampConcrete_F.p3d", _pos];
-_ramp  setVectorUp [0,0,1];
-_ramp setPosATL ([(_pos select 0), (_pos select 1), 0]);
-_ramp setDir (getDir player + 180);
+[] call fnc_constructInitialRampAndBridgeSegment;
