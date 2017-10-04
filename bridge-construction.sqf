@@ -13,15 +13,24 @@ fnc_maxWidthLengthHeightOf = {
 };
 
 fnc_spawnInFrontOf = {
-    params ["_object", "_thing", "_directionOffset"];
+    params ["_object", "_thing", "_directionOffset", "_distanceAhead", "_elevation"];
     private ["_spawnedObject", "_maxs", "_maxWidth", "_pos", "_objectDistanceFromTerrain"];
 
     if(isNil "_directionOffset") then {
       _directionOffset = 0;
     };
+
+    if(isNil "_distanceAhead") then {
+      _distanceAhead = 0;
+    };
+
+    if(isNil "_elevation") then {
+      _elevation = 0;
+    };
+
     _spawnedObject = createVehicle [
         _thing,
-        getPos _object,
+        (getPos _object),
         [],
         0,
         "CAN_COLLIDE"
@@ -35,10 +44,9 @@ fnc_spawnInFrontOf = {
     _spawnedObject setVectorUp [0,0,1];
     _spawnedObject setDir ((direction _object) + _directionOffset);
 
-    _pos = _object modelToWorld [0, _maxWidth, 0];
+    _pos = _object modelToWorld [0, _maxWidth + _distanceAhead, 0];
 
-    _objectDistanceFromTerrain = ((getPosATL _object) select 2);
-    _spawnedObject setPosATL ([(_pos select 0), (_pos select 1), _objectDistanceFromTerrain]);
+    _spawnedObject setPos ([(_pos select 0), (_pos select 1), (_pos select 2) + _elevation]);
 
     _spawnedObject
 };
@@ -70,14 +78,18 @@ fnc_attachObjectTo = {
 };
 
 fnc_spawnSimpleObjectInFrontOf ={
-  params ["_simpleObjectP3DPath", "_inFrontOf", "_directionOffset"];
+  params ["_simpleObjectP3DPath", "_inFrontOf", "_directionOffset", "_distanceAhead"];
   private ["_inFrontOfPos", "_object"];
 
   if(isNil "_directionOffset") then {
     _directionOffset = 0;
   };
 
-  _inFrontOfPos = _inFrontOf getRelPos [4, 0];
+  if(isNil "_distanceAhead") then {
+    _distanceAhead = 0;
+  };
+
+  _inFrontOfPos = _inFrontOf getRelPos [4 + _distanceAhead, 0];
   _object = createSimpleObject [_simpleObjectP3DPath, _inFrontOfPos];
   _object setVectorUp [0,0,1];
   _object setPosATL ([(_inFrontOfPos select 0), (_inFrontOfPos select 1), 0]);
@@ -97,28 +109,38 @@ fnc_constructInitialRampAndBridgeSegment = {
 
   _initialBridgeSegment = [
       player,
-      "Land_Pier_F"
+      "Land_Pier_F",
+      90,
+      10,
+      -1.2
   ] call fnc_spawnInFrontOf;
 
-  _maxs = [_initialRamp] call fnc_maxWidthLengthHeightOf;
-  _maxWidth = (_maxs select 0);
-
-  _initialBridgeSegment attachTo [_initialRamp];
-
-  _objPos = getPos _initialBridgeSegment;
-  detach _initialBridgeSegment;
-
-  _initialBridgeSegment setDir (getDir player + 90);
-
-  _objectToAttachToZ = ((getPos _initialRamp) select 2) - 1.6;
-  _initialBridgeSegment setPos [(_objPos select 0) - (_maxWidth + 2), (_objPos select 1), _objectToAttachToZ];
 };
 
 fnc_constructBridgeExtension = {
 
 };
 
-fnc_constructFinalRamp = {
+fnc_constructFinalRampAndBridgeSegment = {
+  private ["_finalRamp", "_finalBridgeSegment", "_maxs", "_maxWidth"];
+
+  _nearestBridgeSegment = ((nearestObjects [player, ["Land_Pier_F"], 25]) select 0);
+
+  _finalBridgeSegment = [
+      "Land_Pier_F",
+      _nearestBridgeSegment,
+      player
+  ] call fnc_attachObjectTo;
+
+  _maxs = [_finalBridgeSegment] call fnc_maxWidthLengthHeightOf;
+  _maxWidth = (_maxs select 0);
+
+  _finalRamp = [
+      "A3\Structures_F\Training\RampConcrete_F.p3d",
+      player,
+      360,
+      _maxWidth + 3
+  ] call fnc_spawnSimpleObjectInFrontOf;
 
 };
 
@@ -133,11 +155,7 @@ player addAction ["Construct/Extend Bridge", {
    _nearestBridgeSegment = ((nearestObjects [player, ["Land_Pier_F"], 25]) select 0);
 
    if(isNil "_nearestBridgeSegment") then {
-     [
-         player,
-         "Land_Pier_F",
-         90
-     ] call fnc_spawnInFrontOf;
+     [] call fnc_constructInitialRampAndBridgeSegment;
    } else {
      [
          "Land_Pier_F",
@@ -145,7 +163,18 @@ player addAction ["Construct/Extend Bridge", {
          player
      ] call fnc_attachObjectTo;
    };
-  };
+ };
 }];
 
-[] call fnc_constructInitialRampAndBridgeSegment;
+player addAction ["Complete Bridge", {
+  player playMove "AinvPknlMstpSnonWrflDr_medic5";
+  [] spawn
+  {
+   sleep 5;
+   player playAction "PlayerStand";
+   sleep 5;
+
+   [] call fnc_constructFinalRampAndBridgeSegment;
+
+ };
+}];
