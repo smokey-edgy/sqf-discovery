@@ -107,6 +107,8 @@ fnc_constructInitialRampAndBridgeSegment = {
       180
   ] call fnc_spawnSimpleObjectInFrontOf;
 
+  [_initialRamp, "Destroy Ramp"] call fnc_addSimpleDestroyActionTo;
+
   [_initialRamp] call fnc_drawBoundingBox;
 
   _initialBridgeSegment = [
@@ -147,7 +149,7 @@ fnc_constructFinalRampAndBridgeSegment = {
       _maxWidth + 3
   ] call fnc_spawnSimpleObjectInFrontOf;
 
-  [_finalRamp, "Destroy Ramp"] call fnc_addDestroyActionTo;
+  [_finalRamp, "Destroy Ramp"] call fnc_addSimpleDestroyActionTo;
 };
 
 fnc_drawBoundingBox = {
@@ -214,6 +216,48 @@ fnc_drawBoundingBox = {
   };
 };
 
+fnc_addSimpleDestroyActionTo = {
+  params ["_object", "_actionText"];
+  private ["_trigger", "_bbr", "_p1", "_p2", "_x1", "_x2", "_y1", "_y2", "_z1", "_z2"];
+
+  _bbr = boundingBoxReal _object;
+  _p1 = _bbr select 0;
+  _p2 = _bbr select 1;
+  _x1 = _p1 select 0;
+  _y1 = _p1 select 1;
+  _x2 = _p2 select 0;
+  _y2 = _p2 select 1;
+  _z2 = _p2 select 2;
+
+  _triggerPosition = _object modelToWorld [_x2, _y1 + ((_y2 - _y1) / 2), _z2];
+
+  _trigger = createTrigger ["EmptyDetector", _triggerPosition];
+  _trigger setVariable ["simpleObject", _object, false];
+
+  _trigger setTriggerArea  [5, 5, 45, false];
+  _trigger setTriggerActivation ["ANY", "PRESENT", true];
+  _trigger setTriggerStatements ["{isPlayer _x} count thisList > 0;", "
+   player addAction [""" + _actionText + """, {
+     _simpleObject = (_this select 3) getVariable ""simpleObject"";
+     player playMove ""AinvPknlMstpSnonWrflDr_medic5"";
+     [_simpleObject, (_this select 3)] spawn {
+       sleep 5;
+       player playAction ""PlayerStand"";
+       sleep 5;
+       deleteVehicle (_this select 0);
+       _actionIds = actionIDs player;
+       _actionIdsCount = count _actionIds;
+       player removeAction (_actionIds select (_actionIdsCount - 1));
+       deleteVehicle (_this select 1);
+     };
+   }, thisTrigger];
+  ", "
+    _actionIds = actionIDs player;
+    _actionIdsCount = count _actionIds;
+    player removeAction (_actionIds select (_actionIdsCount - 1));
+  "];
+};
+
 fnc_addDestroyActionTo = {
   params ["_object", "_actionText"];
   private ["_trigger", "_bbr", "_p1", "_p2", "_x1", "_x2", "_y1", "_y2", "_z1", "_z2"];
@@ -225,7 +269,6 @@ fnc_addDestroyActionTo = {
   _y1 = _p1 select 1;
   _x2 = _p2 select 0;
   _y2 = _p2 select 1;
-  _z1 = _p1 select 2;
   _z2 = _p2 select 2;
 
   _triggerPosition = _object modelToWorld [_x2, _y1 + ((_y2 - _y1) / 2), _z2];
