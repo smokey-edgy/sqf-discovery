@@ -238,13 +238,17 @@ fnc_addDestroyActionTo = {
      _inFrontOfPlayer = player getRelPos [10, 0];
      _nearestObj = nearestObject [_inFrontOfPlayer, """ + typeOf _object + """];
      player playMove ""AinvPknlMstpSnonWrflDr_medic5"";
-     [_nearestObj] spawn {
+     [_nearestObj, (_this select 3)] spawn {
        sleep 5;
        player playAction ""PlayerStand"";
        sleep 5;
        deleteVehicle (_this select 0);
+       _actionIds = actionIDs player;
+       _actionIdsCount = count _actionIds;
+       player removeAction (_actionIds select (_actionIdsCount - 1));
+       deleteVehicle (_this select 1);
      };
-   }];
+   }, thisTrigger];
   ", "
     _actionIds = actionIDs player;
     _actionIdsCount = count _actionIds;
