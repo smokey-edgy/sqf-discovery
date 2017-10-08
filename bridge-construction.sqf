@@ -109,8 +109,6 @@ fnc_constructInitialRampAndBridgeSegment = {
 
   [_initialRamp, "Destroy Ramp"] call fnc_addSimpleDestroyActionTo;
 
-  [_initialRamp] call fnc_drawBoundingBox;
-
   _initialBridgeSegment = [
       player,
       "Land_Pier_F",
@@ -218,20 +216,9 @@ fnc_drawBoundingBox = {
 
 fnc_addSimpleDestroyActionTo = {
   params ["_object", "_actionText"];
-  private ["_trigger", "_bbr", "_p1", "_p2", "_x1", "_x2", "_y1", "_y2", "_z1", "_z2"];
+  private ["_trigger"];
 
-  _bbr = boundingBoxReal _object;
-  _p1 = _bbr select 0;
-  _p2 = _bbr select 1;
-  _x1 = _p1 select 0;
-  _y1 = _p1 select 1;
-  _x2 = _p2 select 0;
-  _y2 = _p2 select 1;
-  _z2 = _p2 select 2;
-
-  _triggerPosition = _object modelToWorld [_x2, _y1 + ((_y2 - _y1) / 2), _z2];
-
-  _trigger = createTrigger ["EmptyDetector", _triggerPosition];
+  _trigger = createTrigger ["EmptyDetector", position _object];
   _trigger setVariable ["simpleObject", _object, false];
 
   _trigger setTriggerArea  [5, 5, 45, false];
