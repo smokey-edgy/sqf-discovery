@@ -107,6 +107,8 @@ fnc_constructInitialRampAndBridgeSegment = {
       180
   ] call fnc_spawnSimpleObjectInFrontOf;
 
+  [_initialRamp] call fnc_drawBoundingBox;
+
   _initialBridgeSegment = [
       player,
       "Land_Pier_F",
@@ -115,6 +117,7 @@ fnc_constructInitialRampAndBridgeSegment = {
       -1.2
   ] call fnc_spawnInFrontOf;
 
+  [_initialBridgeSegment, "Destroy Bridge Segment"] call fnc_addDestroyActionTo;
 };
 
 fnc_constructBridgeExtension = {
@@ -132,6 +135,8 @@ fnc_constructFinalRampAndBridgeSegment = {
       player
   ] call fnc_attachObjectTo;
 
+  [_finalBridgeSegment, "Destroy Bridge Segment"] call fnc_addDestroyActionTo;
+
   _maxs = [_finalBridgeSegment] call fnc_maxWidthLengthHeightOf;
   _maxWidth = (_maxs select 0);
 
@@ -141,6 +146,110 @@ fnc_constructFinalRampAndBridgeSegment = {
       360,
       _maxWidth + 3
   ] call fnc_spawnSimpleObjectInFrontOf;
+
+  [_finalRamp, "Destroy Ramp"] call fnc_addDestroyActionTo;
+};
+
+fnc_drawBoundingBox = {
+  params ["_object"];
+
+  _object call {
+      private ["_obj","_bb","_bbx","_bby","_bbz","_arr","_y","_z"];
+      _obj = _this;
+      _bb = {
+          _bbx = [_this select 0 select 0, _this select 1 select 0];
+          _bby = [_this select 0 select 1, _this select 1 select 1];
+          _bbz = [_this select 0 select 2, _this select 1 select 2];
+          _arr = [];
+          0 = {
+              _y = _x;
+              0 = {
+                  _z = _x;
+                  0 = {
+                      0 = _arr pushBack (_obj modelToWorld [_x,_y,_z]);
+                  } count _bbx;
+              } count _bbz;
+              reverse _bbz;
+          } count _bby;
+          _arr pushBack (_arr select 0);
+          _arr pushBack (_arr select 1);
+          _arr
+      };
+      bbox = boundingBox _obj call _bb;
+      bboxr = boundingBoxReal _obj call _bb;
+      addMissionEventHandler ["Draw3D", {
+          for "_i" from 0 to 7 step 2 do {
+              drawLine3D [
+                  bbox select _i,
+                  bbox select (_i + 2),
+                  [0,0,1,1]
+              ];
+              drawLine3D [
+                  bboxr select _i,
+                  bboxr select (_i + 2),
+                  [0,1,0,1]
+              ];
+              drawLine3D [
+                  bbox select (_i + 2),
+                  bbox select (_i + 3),
+                  [0,0,1,1]
+              ];
+              drawLine3D [
+                  bboxr select (_i + 2),
+                  bboxr select (_i + 3),
+                  [0,1,0,1]
+              ];
+              drawLine3D [
+                  bbox select (_i + 3),
+                  bbox select (_i + 1),
+                  [0,0,1,1]
+              ];
+              drawLine3D [
+                  bboxr select (_i + 3),
+                  bboxr select (_i + 1),
+                  [0,1,0,1]
+              ];
+          };
+      }];
+  };
+};
+
+fnc_addDestroyActionTo = {
+  params ["_object", "_actionText"];
+  private ["_trigger", "_bbr", "_p1", "_p2", "_x1", "_x2", "_y1", "_y2", "_z1", "_z2"];
+
+  _bbr = boundingBoxReal _object;
+  _p1 = _bbr select 0;
+  _p2 = _bbr select 1;
+  _x1 = _p1 select 0;
+  _y1 = _p1 select 1;
+  _x2 = _p2 select 0;
+  _y2 = _p2 select 1;
+  _z1 = _p1 select 2;
+  _z2 = _p2 select 2;
+
+  _triggerPosition = _object modelToWorld [_x2, _y1 + ((_y2 - _y1) / 2), _z2];
+
+  _trigger = createTrigger ["EmptyDetector", _triggerPosition];
+  _trigger setTriggerArea  [5, 5, 45, false];
+  _trigger setTriggerActivation ["ANY", "PRESENT", true];
+  _trigger setTriggerStatements ["{isPlayer _x} count thisList > 0;", "
+   player addAction [""" + _actionText + """, {
+     _inFrontOfPlayer = player getRelPos [10, 0];
+     _nearestObj = nearestObject [_inFrontOfPlayer, """ + typeOf _object + """];
+     player playMove ""AinvPknlMstpSnonWrflDr_medic5"";
+     [_nearestObj] spawn {
+       sleep 5;
+       player playAction ""PlayerStand"";
+       sleep 5;
+       deleteVehicle (_this select 0);
+     };
+   }];
+  ", "
+    _actionIds = actionIDs player;
+    _actionIdsCount = count _actionIds;
+    player removeAction (_actionIds select (_actionIdsCount - 1));
+  "];
 
 };
 
@@ -157,24 +266,23 @@ player addAction ["Construct/Extend Bridge", {
    if(isNil "_nearestBridgeSegment") then {
      [] call fnc_constructInitialRampAndBridgeSegment;
    } else {
-     [
+     _newBridgeSegment = [
          "Land_Pier_F",
          _nearestBridgeSegment,
          player
      ] call fnc_attachObjectTo;
+     [_newBridgeSegment, "Destroy Bridge Segment"] call fnc_addDestroyActionTo;
    };
  };
 }];
 
 player addAction ["Complete Bridge", {
   player playMove "AinvPknlMstpSnonWrflDr_medic5";
-  [] spawn
-  {
+  [] spawn {
    sleep 5;
    player playAction "PlayerStand";
    sleep 5;
 
    [] call fnc_constructFinalRampAndBridgeSegment;
-
  };
 }];
